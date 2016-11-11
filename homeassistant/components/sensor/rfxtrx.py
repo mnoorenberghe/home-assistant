@@ -10,11 +10,12 @@ import voluptuous as vol
 import homeassistant.components.rfxtrx as rfxtrx
 import homeassistant.helpers.config_validation as cv
 from homeassistant.const import CONF_PLATFORM
-from homeassistant.helpers.entity import Entity
+from homeassistant.helpers.entity import Entity, generate_entity_id
 from homeassistant.util import slugify
 from homeassistant.components.rfxtrx import (
     ATTR_AUTOMATIC_ADD, ATTR_NAME, ATTR_FIREEVENT,
     CONF_DEVICES, ATTR_DATA_TYPE, DATA_TYPES, ATTR_ENTITY_ID)
+from homeassistant.components.binary_sensor import ENTITY_ID_FORMAT
 
 DEPENDENCIES = ['rfxtrx']
 
@@ -47,8 +48,10 @@ def setup_platform(hass, config, add_devices_callback, discovery_info=None):
                     data_types = [data_type]
                     break
         for _data_type in data_types:
-            new_sensor = RfxtrxSensor(None, entity_info[ATTR_NAME],
-                                      _data_type, entity_info[ATTR_FIREEVENT])
+            entity_id = generate_entity_id(ENTITY_ID_FORMAT, device_id,
+                                           hass=hass)
+            new_sensor = RfxtrxSensor(None, entity_info[ATTR_NAME], _data_type,
+                                      entity_info[ATTR_FIREEVENT], entity_id)
             sensors.append(new_sensor)
             sub_sensors[_data_type] = new_sensor
         rfxtrx.RFX_DEVICES[device_id] = sub_sensors
@@ -102,13 +105,16 @@ def setup_platform(hass, config, add_devices_callback, discovery_info=None):
 class RfxtrxSensor(Entity):
     """Representation of a RFXtrx sensor."""
 
-    def __init__(self, event, name, data_type, should_fire_event=False):
+    def __init__(self, event, name, data_type,
+                 should_fire_event=False, entity_id=None):
         """Initialize the sensor."""
         self.event = event
         self._name = name
         self.should_fire_event = should_fire_event
         self.data_type = data_type
         self._unit_of_measurement = DATA_TYPES.get(data_type, '')
+        if entity_id:
+            self.entity_id = entity_id
 
     def __str__(self):
         """Return the name of the sensor."""
