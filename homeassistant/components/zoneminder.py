@@ -32,6 +32,7 @@ CONFIG_SCHEMA = vol.Schema({
         vol.Optional(CONF_PATH, default=DEFAULT_PATH): cv.string,
         vol.Optional(CONF_USERNAME): cv.string,
         vol.Optional(CONF_PASSWORD): cv.string
+        # TODO: cgi-bin
     })
 }, extra=vol.ALLOW_EXTRA)
 
@@ -54,6 +55,8 @@ def setup(hass, config):
     ZM['url'] = url
     ZM['username'] = username
     ZM['password'] = password
+
+    hass.data[DOMAIN] = ZM
 
     return login()
 
